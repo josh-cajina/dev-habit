@@ -19,9 +19,9 @@ public sealed class HabitsController(ApplicationDbContext dbContext) : Controlle
             .Select(HabitQueries.ProjectToDto())
             .ToListAsync();
 
-        var habitsCollectionDto = new HabitsCollectionDto 
-        { 
-            Data = habits 
+        var habitsCollectionDto = new HabitsCollectionDto
+        {
+            Data = habits
         };
 
         return Ok(habitsCollectionDto);
@@ -45,7 +45,7 @@ public sealed class HabitsController(ApplicationDbContext dbContext) : Controlle
     }
 
     [HttpPost]
-    public async Task<ActionResult<HabitDto>> CreateHabit(CreateHabitDto createHabitDto) 
+    public async Task<ActionResult<HabitDto>> CreateHabit(CreateHabitDto createHabitDto)
     {
         Habit habit = createHabitDto.ToEntity();
 
@@ -55,5 +55,22 @@ public sealed class HabitsController(ApplicationDbContext dbContext) : Controlle
         HabitDto habitDto = habit.ToDto();
 
         return CreatedAtAction(nameof(GetHabit), new { id = habitDto.Id }, habitDto);
+    }
+
+    [HttpPut("{id}")]
+    public async Task<ActionResult> UpdateHabit(string id, UpdateHabitDto updateHabitDto) 
+    {
+        Habit? habit = await dbContext.Habits.FirstOrDefaultAsync(habit => habit.Id == id);
+
+        if (habit is null)
+        {
+            return NotFound();
+        }
+
+        habit.UpdateFromDto(updateHabitDto);
+
+        await dbContext.SaveChangesAsync();
+
+        return NoContent();
     }
 }
