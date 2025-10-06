@@ -40,7 +40,7 @@ public static class HabitMappings
     {
         Habit habit = new() 
         {
-            Id = $"h_${Guid.CreateVersion7()}",
+            Id = $"h_{Guid.CreateVersion7()}",
             Name = dto.Name,
             Description = dto.Description,
             Type = dto.Type,
