@@ -2,12 +2,7 @@
 
 namespace DevHabit.Api.DTOs.Habits;
 
-public sealed record HabitsCollectionDto 
-{
-    public List<HabitDto> Data { get; init; }
-}
-
-public record HabitDto
+public sealed record HabitWithTagsDto 
 {
     public required string Id { get; init; }
     public required string Name { get; init; }
@@ -22,22 +17,6 @@ public record HabitDto
     public required DateTime CreatedAtUtc { get; init; }
     public DateTime? UpdatedAtUtc { get; init; }
     public DateTime? LastCompletedAtUtc { get; init; }
-}
 
-public sealed record FrequencyDto
-{
-    public required FrequencyType Type { get; init; }
-    public required int TimesPerPeriod { get; init; }
-}
-
-public sealed record TargetDto
-{
-    public required int Value { get; set; }
-    public required string Unit { get; set; }
-}
-
-public sealed record MilestoneDto
-{
-    public required int Target { get; set; }
-    public required int Current { get; set; }
+    public required string[] Tags { get; init; }
 }
