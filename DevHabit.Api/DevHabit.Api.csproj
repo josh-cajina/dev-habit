@@ -23,4 +23,7 @@
 		<PackageReference Include="OpenTelemetry.Instrumentation.Http" />
 		<PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
 	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="DTOs\Tags\" />
+	</ItemGroup>
 </Project>
