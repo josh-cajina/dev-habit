@@ -1,6 +1,7 @@
 ﻿using System.Dynamic;
 using System.Linq.Dynamic.Core;
 using System.Linq.Expressions;
+using System.Net.Mime;
 using DevHabit.Api.Database;
 using DevHabit.Api.DTOs.Common;
 using DevHabit.Api.DTOs.Habits;
@@ -22,7 +23,11 @@ namespace DevHabit.Api.Controllers;
 public sealed class HabitsController(ApplicationDbContext dbContext, LinkService linkService) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetHabits([FromQuery] HabitsQueryParameters query, SortMappingProvider sortMappingProvider, DataShapingService dataShapingService)
+    [Produces(MediaTypeNames.Application.Json, CustomMediaTypeNames.Application.HateoasJson)]
+    public async Task<IActionResult> GetHabits(
+        [FromQuery] HabitsQueryParameters query, 
+        SortMappingProvider sortMappingProvider, 
+        DataShapingService dataShapingService)
     {
         if (!sortMappingProvider.ValidateMappings<HabitDto, Habit>(query.Sort))
         {
@@ -60,21 +65,34 @@ public sealed class HabitsController(ApplicationDbContext dbContext, LinkService
             .Take(query.PageSize)
             .ToListAsync();
 
+        bool includeLinks = query.Accept == CustomMediaTypeNames.Application.HateoasJson;
+
         var paginationResult = new PaginationResult<ExpandoObject>
         {
-            Items = dataShapingService.ShapeCollectionData(habits, query.Fields, habit => CreateLinksForHabit(habit.Id, query.Fields)),
+            Items = dataShapingService.ShapeCollectionData(
+                habits, 
+                query.Fields, 
+                includeLinks ? habit => CreateLinksForHabit(habit.Id, query.Fields) : null),
             Page = query.Page,
             PageSize = query.PageSize,
             TotalCount = totalCount,
         };
 
-        paginationResult.Links = CreateLinksForHabits(query, paginationResult.HasNextPage, paginationResult.HasPreviousPage);
+        if (includeLinks)
+        {
+            paginationResult.Links = CreateLinksForHabits(query, paginationResult.HasNextPage, paginationResult.HasPreviousPage);
+        }
 
         return Ok(paginationResult);
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetHabit(string id, string? fields, DataShapingService dataShapingService)
+    public async Task<IActionResult> GetHabit(
+        string id, 
+        string? fields, 
+        [FromHeader(Name = "Accept")]
+        string? accept,
+        DataShapingService dataShapingService)
     {
         if (!dataShapingService.Validate<HabitWithTagsDto>(fields))
         {
@@ -96,9 +114,13 @@ public sealed class HabitsController(ApplicationDbContext dbContext, LinkService
 
         ExpandoObject shapedHabitDto = dataShapingService.ShapeData(habit, fields);
 
-        List<LinkDto> links = CreateLinksForHabit(id, fields);
+        bool includeLinks = accept == CustomMediaTypeNames.Application.HateoasJson;
 
-        shapedHabitDto.TryAdd("links", links);
+        if (includeLinks)
+        {
+            List<LinkDto> links = CreateLinksForHabit(id, fields);
+            shapedHabitDto.TryAdd("links", links);
+        }
 
         return Ok(shapedHabitDto);
     }
