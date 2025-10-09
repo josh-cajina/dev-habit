@@ -11,12 +11,17 @@ public sealed class TagConfiguration : IEntityTypeConfiguration<Tag>
         builder.HasKey(tag => tag.Id);
 
         builder.Property(tag => tag.Id).HasMaxLength(500);
+        builder.Property(tag => tag.UserId).HasMaxLength(500);
 
         builder.Property(tag => tag.Name).IsRequired().HasMaxLength(50);
 
         builder.Property(tag => tag.Description).HasMaxLength(500);
 
-        builder.HasIndex(tag => new { tag.Name }).IsUnique();
+        builder.HasIndex(tag => new { tag.UserId, tag.Name }).IsUnique();
+
+        builder.HasOne<User>()
+            .WithMany()
+            .HasForeignKey(tag => tag.UserId);
     }
 }
 

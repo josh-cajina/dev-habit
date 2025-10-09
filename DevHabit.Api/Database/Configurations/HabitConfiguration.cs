@@ -11,6 +11,7 @@ public sealed class HabitConfiguration : IEntityTypeConfiguration<Habit>
         builder.HasKey(habit => habit.Id);
 
         builder.Property(habit => habit.Id).HasMaxLength(500);
+        builder.Property(habit => habit.UserId).HasMaxLength(500);
         builder.Property(habit => habit.Name).HasMaxLength(100);
         builder.Property(habit => habit.Description).HasMaxLength(500);
 
@@ -25,5 +26,9 @@ public sealed class HabitConfiguration : IEntityTypeConfiguration<Habit>
         builder.HasMany(habit => habit.Tags)
             .WithMany()
             .UsingEntity<HabitTag>();
+
+        builder.HasOne<User>()
+            .WithMany()
+            .HasForeignKey(habit => habit.UserId);
     }
 }

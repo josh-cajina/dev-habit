@@ -1,6 +1,7 @@
 ﻿using DevHabit.Api.Database;
 using DevHabit.Api.DTOs.HabitTags;
 using DevHabit.Api.Entities;
+using DevHabit.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,16 +11,22 @@ namespace DevHabit.Api.Controllers;
 [Authorize]
 [ApiController]
 [Route("habits/{habitId}/tags")]
-public class HabitTagsController(ApplicationDbContext dbContext) : ControllerBase
+public class HabitTagsController(ApplicationDbContext dbContext, UserContext userContext) : ControllerBase
 {
     public static readonly string Name = nameof(HabitTagsController).Replace("Controller", string.Empty);
 
     [HttpPut]
     public async Task<ActionResult> UpsertHabitTags(string habitId, UpsertHabitTagsDto upsertHabitTagsDto)
     {
+        string? userId = await userContext.GetUserIdAsync();
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return Unauthorized();
+        }
+
         Habit? habit = await dbContext.Habits
             .Include(habit => habit.HabitTags)
-            .FirstOrDefaultAsync(habit => habit.Id == habitId);
+            .FirstOrDefaultAsync(habit => habit.Id == habitId && habit.UserId == userId);
 
         if (habit is null)
         {
@@ -67,7 +74,14 @@ public class HabitTagsController(ApplicationDbContext dbContext) : ControllerBas
     [HttpDelete("{tagId}")]
     public async Task<ActionResult> DeleteHabitTag(string habitId, string tagId)
     {
-        HabitTag? habitTag = await dbContext.HabitTags.SingleOrDefaultAsync(habitTag => habitTag.HabitId == habitId && habitTag.TagId == tagId);
+        string? userId = await userContext.GetUserIdAsync();
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return Unauthorized();
+        }
+
+        HabitTag? habitTag = await dbContext.HabitTags
+            .SingleOrDefaultAsync(habitTag => habitTag.HabitId == habitId && habitTag.TagId == tagId );
 
         if (habitTag is null)
         {
