@@ -11,7 +11,7 @@ namespace DevHabit.Api.Controllers;
 [Authorize(Roles = Roles.Member)]
 [ApiController]
 [Route("habits/{habitId}/tags")]
-public class HabitTagsController(ApplicationDbContext dbContext, UserContext userContext) : ControllerBase
+public sealed class HabitTagsController(ApplicationDbContext dbContext, UserContext userContext) : ControllerBase
 {
     public static readonly string Name = nameof(HabitTagsController).Replace("Controller", string.Empty);
 

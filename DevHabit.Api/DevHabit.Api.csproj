@@ -28,4 +28,7 @@
 		<PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
 		<PackageReference Include="System.Linq.Dynamic.Core" />
 	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="DTOs\Github\" />
+	</ItemGroup>
 </Project>
