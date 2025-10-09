@@ -7,6 +7,8 @@ namespace DevHabit.Api.Database;
 
 public sealed class ApplicationIdentityDbContext(DbContextOptions<ApplicationIdentityDbContext> options) : IdentityDbContext(options)
 {
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -20,5 +22,20 @@ public sealed class ApplicationIdentityDbContext(DbContextOptions<ApplicationIde
         builder.Entity<IdentityUserClaim<string>>().ToTable("asp_net_user_claims");
         builder.Entity<IdentityUserLogin<string>>().ToTable("asp_net_user_logins");
         builder.Entity<IdentityUserToken<string>>().ToTable("asp_net_user_tokens");
+
+        builder.Entity<RefreshToken>(refreshToken => 
+        {
+            refreshToken.HasKey(entity => entity.Id);
+
+            refreshToken.Property(entity => entity.UserId).HasMaxLength(300);
+            refreshToken.Property(entity => entity.Token).HasMaxLength(300);
+
+            refreshToken.HasIndex(entity => entity.Token).IsUnique();
+
+            refreshToken.HasOne(entity => entity.User)
+                .WithMany()
+                .HasForeignKey(entity => entity.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
     }
 }
